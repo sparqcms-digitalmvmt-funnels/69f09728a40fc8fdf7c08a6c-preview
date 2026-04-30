@@ -178,7 +178,7 @@ const THANK_YOU_NEXT_PAGE_SLUG = "";
 function getNextPageSlugForRedirect() {
   const normalize = (value) => {
     if (!value) return "";
-    return value.startsWith("/") ? value : "/" + value;
+    return value.startsWith("/69f09728a40fc8fdf7c08a6c-preview") ? value : (value.startsWith("/") ? "/69f09728a40fc8fdf7c08a6c-preview" + value : "/69f09728a40fc8fdf7c08a6c-preview/" + value);
   };
   if (THANK_YOU_NEXT_PAGE_SLUG) return normalize(THANK_YOU_NEXT_PAGE_SLUG);
   return "/";
@@ -300,7 +300,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const endpoint =
     `orders?order_id=${orderids.join(",")}` +
-    `&with=order_offers,customer_address_billing,customer_address_shipping,customer,transactions,cart&pageId=jJYjFnqwxw6Dabi9gJzP7A8e_pnwv-ubjByKxyGF7xdXbm5ShtWTFF_etvwwQmtx`
+    `&with=order_offers,customer_address_billing,customer_address_shipping,customer,transactions,cart&pageId=40-kijknpZgqQff5Gxf93hxb_iGkj9ldbPN1CMtkNajZlfg7X-Mt6RxhiqnLW8Ok`
 
   const response = await fetch(
     `https://app-cms-api-proxy-staging-001.azurewebsites.net/vrio/${endpoint}`,

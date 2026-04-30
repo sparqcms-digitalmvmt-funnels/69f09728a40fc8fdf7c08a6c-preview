@@ -57,7 +57,7 @@ const CHECKOUT_NEXT_PAGE_SLUG = "offer/1/thank-you";
 function getNextPageSlugForRedirect() {
   const normalize = (value) => {
     if (!value) return "";
-    return value.startsWith("/") ? value : "/" + value;
+    return value.startsWith("/69f09728a40fc8fdf7c08a6c-preview") ? value : (value.startsWith("/") ? "/69f09728a40fc8fdf7c08a6c-preview" + value : "/69f09728a40fc8fdf7c08a6c-preview/" + value);
   };
 
   try {
@@ -619,7 +619,7 @@ async function createOrderViaWallet(confirmationToken, paymentMethodId) {
         ?.getAttribute("data-shipping-profile-id") || undefined;
 
   const orderData = {
-    pageId: "IaVZelC8PbojteGEH9YNr9WM4FhfobSvPsxDqpBNyOs659kyMXbK6J0X3hVHk9dx",
+    pageId: "pfyYKvqLyqFWdRgigLxg6B3IF_9g8VdcaHwP7DtVP6Y7tA-2YfXfG4ycAD6o6LhN",
     action: "process",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1,
@@ -1407,7 +1407,7 @@ async function createOrderViaPaypal(isExpress = false) {
   const shippingProfileId = +document.querySelector(`[data-product-id="${selectedProduct.id}"]`)?.getAttribute('data-shipping-profile-id') || undefined;
   const sameAddress = isSameAddress();
   const orderData = {
-    pageId: "IaVZelC8PbojteGEH9YNr9WM4FhfobSvPsxDqpBNyOs659kyMXbK6J0X3hVHk9dx",
+    pageId: "pfyYKvqLyqFWdRgigLxg6B3IF_9g8VdcaHwP7DtVP6Y7tA-2YfXfG4ycAD6o6LhN",
     action: "process",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1, // VRIO URL ending /connection
@@ -1706,7 +1706,7 @@ async function createOrderViaKlarna() {
   const sameAddress = isSameAddress();
 
   const orderData = {
-    pageId: "IaVZelC8PbojteGEH9YNr9WM4FhfobSvPsxDqpBNyOs659kyMXbK6J0X3hVHk9dx",
+    pageId: "pfyYKvqLyqFWdRgigLxg6B3IF_9g8VdcaHwP7DtVP6Y7tA-2YfXfG4ycAD6o6LhN",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1,
     email: email,
@@ -2084,7 +2084,7 @@ async function createOrderViaCreditCard() {
   let orderTotal = Math.max(0, Number(selectedProduct.price) * selectedProduct.quantity);
 
   const orderData = {
-    pageId: "IaVZelC8PbojteGEH9YNr9WM4FhfobSvPsxDqpBNyOs659kyMXbK6J0X3hVHk9dx",
+    pageId: "pfyYKvqLyqFWdRgigLxg6B3IF_9g8VdcaHwP7DtVP6Y7tA-2YfXfG4ycAD6o6LhN",
     action: "process",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1, // VRIO URL ending /connection
@@ -2965,7 +2965,13 @@ if (typeof validateAndSendToKlaviyo === "function") {
       } catch (error) {
         console.error("Error sending transaction to data layer", error);
       }
-      window.location.href = "/" + nextPageSlug;
+      const redirectSlug =
+        typeof nextPageSlug === "string" && nextPageSlug.length > 0
+          ? nextPageSlug.startsWith("/")
+            ? nextPageSlug
+            : "/" + nextPageSlug
+          : "/";
+      window.location.href = redirectSlug;
     } else {
       if (!isLive) await flagOrderAsTest(resultOrderId);
 
@@ -4459,7 +4465,7 @@ async function returnPaypal() {
 ;
 
     const body = {
-        pageId: "IaVZelC8PbojteGEH9YNr9WM4FhfobSvPsxDqpBNyOs659kyMXbK6J0X3hVHk9dx",
+        pageId: "pfyYKvqLyqFWdRgigLxg6B3IF_9g8VdcaHwP7DtVP6Y7tA-2YfXfG4ycAD6o6LhN",
         action: "process",
         campaign_id: CAMPAIGN_ID,
         connection_id: 1,
