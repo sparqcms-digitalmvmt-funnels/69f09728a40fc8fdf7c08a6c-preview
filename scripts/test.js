@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 const EMAIL_OVERSIGHT_VALIDATE_URL = 'https://app-cms-api-proxy-staging-001.azurewebsites.net/integration/email-oversight/validate-public';
 
 
-const CHECKOUT_NEXT_PAGE_SLUG = "offer/1/thank-you";
+const CHECKOUT_NEXT_PAGE_SLUG = "offer/v1/upsell1";
 
 function getNextPageSlugForRedirect() {
   const normalize = (value) => {
@@ -100,7 +100,7 @@ const isKlarnaEnabled = Boolean(
   STRIPE_EXPRESS_CONFIG?.wallets?.enableKlarna
 );
 sessionStorage.setItem("isKlarnaEnabled", JSON.stringify(isKlarnaEnabled));
-const HAS_FOLLOWING_UPSELLS = false;
+const HAS_FOLLOWING_UPSELLS = true;
 
 // Select non-VIP campaign for checkout
 const getVrioCampaignInfoBasedOnPaymentMethod = (isVipUpsell) => {
@@ -619,7 +619,7 @@ async function createOrderViaWallet(confirmationToken, paymentMethodId) {
         ?.getAttribute("data-shipping-profile-id") || undefined;
 
   const orderData = {
-    pageId: "pfyYKvqLyqFWdRgigLxg6B3IF_9g8VdcaHwP7DtVP6Y7tA-2YfXfG4ycAD6o6LhN",
+    pageId: "g_vnDe_rT6bhzP4O1qa8e0uG4adUjk24yRE1ZRkatAckIHEqpgth3A7iRjhBDVUy",
     action: "process",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1,
@@ -1407,7 +1407,7 @@ async function createOrderViaPaypal(isExpress = false) {
   const shippingProfileId = +document.querySelector(`[data-product-id="${selectedProduct.id}"]`)?.getAttribute('data-shipping-profile-id') || undefined;
   const sameAddress = isSameAddress();
   const orderData = {
-    pageId: "pfyYKvqLyqFWdRgigLxg6B3IF_9g8VdcaHwP7DtVP6Y7tA-2YfXfG4ycAD6o6LhN",
+    pageId: "g_vnDe_rT6bhzP4O1qa8e0uG4adUjk24yRE1ZRkatAckIHEqpgth3A7iRjhBDVUy",
     action: "process",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1, // VRIO URL ending /connection
@@ -1706,7 +1706,7 @@ async function createOrderViaKlarna() {
   const sameAddress = isSameAddress();
 
   const orderData = {
-    pageId: "pfyYKvqLyqFWdRgigLxg6B3IF_9g8VdcaHwP7DtVP6Y7tA-2YfXfG4ycAD6o6LhN",
+    pageId: "g_vnDe_rT6bhzP4O1qa8e0uG4adUjk24yRE1ZRkatAckIHEqpgth3A7iRjhBDVUy",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1,
     email: email,
@@ -2084,7 +2084,7 @@ async function createOrderViaCreditCard() {
   let orderTotal = Math.max(0, Number(selectedProduct.price) * selectedProduct.quantity);
 
   const orderData = {
-    pageId: "pfyYKvqLyqFWdRgigLxg6B3IF_9g8VdcaHwP7DtVP6Y7tA-2YfXfG4ycAD6o6LhN",
+    pageId: "g_vnDe_rT6bhzP4O1qa8e0uG4adUjk24yRE1ZRkatAckIHEqpgth3A7iRjhBDVUy",
     action: "process",
     campaign_id: CAMPAIGN_ID,
     connection_id: 1, // VRIO URL ending /connection
@@ -2880,138 +2880,7 @@ if (typeof validateAndSendToKlaviyo === "function") {
   }
 
   returnPaypal();
-  async function returnKlarna() {
-  const params = getParams();
-  const paymentIntent = params.get("payment_intent");
-  const orderId = sessionStorage.getItem("cms_oid");
-
-  if (!paymentIntent) return;
-
-  const preload = document.querySelector("[data-preloader]");
-  if (preload) preload.style.display = "flex";
-
-  if (!orderId) {
-    console.error("Klarna return: no order ID found in sessionStorage");
-    if (preload) preload.style.display = "none";
-    showError(i18n.errors.orderNotFound);
-    return;
-  }
-
-  const orderData = JSON.parse(sessionStorage.getItem("orderData") || "null") || {};
-  const merchantId = orderData?.merchant_id ?? orderData?.merchantId ?? null;
-
-  try {
-    const response = await fetch(
-      `https://app-cms-api-proxy-staging-001.azurewebsites.net/vrio/orders/${orderId}/complete`,
-      {
-        method: "POST",
-        headers: {
-          authorization: `appkey ${INTEGRATION_ID}`,
-          "Content-Type": "application/json; charset=utf-8"
-        },
-        body: JSON.stringify({
-          transaction_token: paymentIntent,
-          ...(merchantId ? { merchant_id: merchantId } : {})
-        })
-      }
-    );
-
-    const result = await response.json();
-
-    if (isTest && window.location.hostname === "localhost") {
-      console.log("Klarna complete response:", result);
-    }
-
-    let isLive = extractKlarnaLivemode(result.gateway_response_text);
-    if (isLive === undefined) {
-      const stored = sessionStorage.getItem("klarna_livemode");
-      isLive = stored !== null ? JSON.parse(stored) : true;
-    }
-
-    const resultOrderId = result.order_id || orderId;
-
-    if (result.success) {
-      if (isLive === false) await flagOrderAsTest(resultOrderId);
-
-      sessionStorage.removeItem("cart_token");
-      sessionStorage.removeItem("klarna_livemode");
-      sessionStorage.setItem("cms_oid", resultOrderId);
-      sessionStorage.setItem("orderids", JSON.stringify([resultOrderId]));
-      MVMT.track("ORDER_SUCCESS", {
-        page: "test ",
-        page_type: "Checkout",
-        page_url: window.location.href,
-        order_data: orderData,
-        response: result,
-      });
-      try {
-        sendTransactionToDataLayer(vrioToTransaction(result), "Klarna");
-      } catch (e) {
-        console.warn("Klarna: could not send transaction to data layer", e);
-      }
-      try {
-        if (typeof validateAndSendToKlaviyo === "function") {
-          const klaviyoPostOrderData = {
-            ...orderData,
-            vrio_order_id: resultOrderId,
-            vrio_response_status: "success",
-          };
-          await validateAndSendToKlaviyo(
-            klaviyoPostOrderData,
-            "Order Success - VRIO Confirmation",
-            "order"
-          );
-        }
-      } catch (error) {
-        console.error("Error sending transaction to data layer", error);
-      }
-      const redirectSlug =
-        typeof nextPageSlug === "string" && nextPageSlug.length > 0
-          ? nextPageSlug.startsWith("/")
-            ? nextPageSlug
-            : "/" + nextPageSlug
-          : "/";
-      window.location.href = redirectSlug;
-    } else {
-      if (!isLive) await flagOrderAsTest(resultOrderId);
-
-      if (isTest) console.error("Klarna complete error:", result);
-      const msg =
-        (result && result.error && result.error.message) ||
-        (result && result.message) ||
-        i18n.errors.klarnaCompletionFailed;
-      if (window.MVMT) {
-        MVMT.track("ORDER_ERROR", {
-          page: "test ",
-          page_type: "Checkout",
-          page_url: window.location.href,
-          order_data: orderData,
-          response: result,
-        });
-      }
-      if (preload) preload.style.display = "none";
-      showError(msg);
-    }
-  } catch (error) {
-    if (isTest) console.error("Klarna complete error:", error);
-    const storedLive = sessionStorage.getItem("klarna_livemode");
-    if (storedLive !== null && JSON.parse(storedLive) === false) {
-      await flagOrderAsTest(orderId);
-    }
-    if (window.MVMT) {
-      MVMT.track("ORDER_ERROR", {
-        page: "test ",
-        page_type: "Checkout",
-        page_url: window.location.href,
-        order_data: orderData,
-        error: error.message || error,
-      });
-    }
-    if (preload) preload.style.display = "none";
-    showError(i18n.errors.unexpectedError);
-  }
-}
-  if (isKlarnaEnabled) { returnKlarna(); }
+  
   const allProducts = document.querySelectorAll("[data-product-id]");
   handleFreeShippingParam(allProducts);
   handleFreeGiftParam(allProducts);
@@ -4465,7 +4334,7 @@ async function returnPaypal() {
 ;
 
     const body = {
-        pageId: "pfyYKvqLyqFWdRgigLxg6B3IF_9g8VdcaHwP7DtVP6Y7tA-2YfXfG4ycAD6o6LhN",
+        pageId: "g_vnDe_rT6bhzP4O1qa8e0uG4adUjk24yRE1ZRkatAckIHEqpgth3A7iRjhBDVUy",
         action: "process",
         campaign_id: CAMPAIGN_ID,
         connection_id: 1,
